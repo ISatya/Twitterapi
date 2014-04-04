@@ -4,6 +4,9 @@ import base64
 import json
 import ast
 import pprint as pp
+from sys import argv
+
+script,ScreenName = argv
 
 CONSUMER_KEY='uGv1JwnszyrXEbvamVTXVdmff'
 CONSUMER_SECRET='0Ayg2bZsLrSAWBcgXuDlAVz84PHYHYJWjN5V1v9V3s9F5zQCEH'
@@ -33,7 +36,7 @@ get_headers={"Authorization":"Bearer "+access_token}
 #Replace ScreenName with  screen name of person to see their tweets
 #Count represents the no. of tweets to retrieve
        
-conn.request("GET","/1.1/statuses/user_timeline.json?screen_name=ScreenName&count=5","",get_headers)  
+conn.request("GET","/1.1/statuses/user_timeline.json?screen_name="+ScreenName+"&count=5","",get_headers)  
 
 get_resp = conn.getresponse()
 sample = get_resp.read()
