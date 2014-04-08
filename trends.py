@@ -4,6 +4,26 @@ import base64
 import json
 import ast
 import pprint as pp
+from pymongo import MongoClient 
+
+def insert_into_database(trendname,screenname,tweet,loc=None):
+    try:       
+       client = MongoClient('localhost', 27017)
+       db = client.test_database
+       
+       screen_name = db.trends.find_one({"trend":trendname,"screenname":screenname,"tweet":tweet})
+       print "%s"%screen_name
+       if not(screen_name):
+            if loc:
+                db.trends.insert({"trend":trendname,"screenname":screenname,"tweet":tweet,"location":loc})
+                print "********Gone into the database********\n\n"
+
+       else:
+            print "************Already present****************\n\n"
+
+    except:
+        print "Database Error"
+
 
 CONSUMER_KEY='uGv1JwnszyrXEbvamVTXVdmff'
 CONSUMER_SECRET='0Ayg2bZsLrSAWBcgXuDlAVz84PHYHYJWjN5V1v9V3s9F5zQCEH'
@@ -40,15 +60,29 @@ data = json.loads(str(sample))
 names = data[0]['trends']
 
 #Getting Tweets for Trends
-conn.request("GET","/1.1/search/tweets.json?q="+str(names[0]['query']),"",get_headers)
 
-tweets_resp = conn.getresponse()
-tweets = tweets_resp.read()
-tweets_json = json.loads(str(tweets))
-tweet=tweets_json['statuses']
+for x in names:
+    print "**********%s trending**********"%x['name']
+    print "query-%s"%(x['query'])
+    conn.request("GET","/1.1/search/tweets.json?q="+(x['query'])+"&count=1","",get_headers)    
+    tweets_resp = conn.getresponse()
+    tweets = tweets_resp.read()
+    tweets_json = json.loads(str(tweets))    
+    #tweet=tweets_json['statuses']        
+    
+    #Check if location=='None'
+    for tweet in tweets_json['statuses']:
+        location = str(tweet['user']['time_zone']).encode('utf-8')
+        if(location=='None'):
+            location=str(tweet['user']['location']).encode('utf-8')
+        if(location=='None'):
+            location=str(tweet['place']).encode('utf-8')
 
-#print Tweets
-for i in range(len(tweet)):
-    print pp.pprint(tweet[i]['text'])
-        
-        
+        print "**********%s tweets**********"%(tweet['user']['screen_name'])
+        print "%s"%(tweet['text'])
+
+        if(location != 'None'):
+            insert_into_database(x['name'],tweet['user']['screen_name'],tweet['text'],location)
+
+
+
