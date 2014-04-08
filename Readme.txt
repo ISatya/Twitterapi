@@ -13,6 +13,7 @@ Getting Started with Twitter Api
 3)trends.py
     Takes no input  
     Returns Top Trends and the tweets of top trend
+    Insert Trend information into database
     
       
        
