@@ -5,7 +5,7 @@ import json
 import ast
 import pprint as pp
 from pymongo import MongoClient 
-
+  
 def insert_into_database(trendname,screenname,tweet,loc=None):
     try:       
        client = MongoClient('localhost', 27017)
@@ -16,17 +16,17 @@ def insert_into_database(trendname,screenname,tweet,loc=None):
        if not(screen_name):
             if loc:
                 db.trends.insert({"trend":trendname,"screenname":screenname,"tweet":tweet,"location":loc})
-                print "********Gone into the database********\n\n"
+                #print "********Gone into the database********\n"
 
-       else:
-            print "************Already present****************\n\n"
+       #else:
+            #print "************Already present****************\n"
 
     except:
         print "Database Error"
 
 
-CONSUMER_KEY='uGv1JwnszyrXEbvamVTXVdmff'
-CONSUMER_SECRET='0Ayg2bZsLrSAWBcgXuDlAVz84PHYHYJWjN5V1v9V3s9F5zQCEH'
+CONSUMER_KEY='YOUR_CONSUMER_KEY'
+CONSUMER_SECRET='YOUR_CONSUMER_SECRET'
 
 enc_str= base64.b64encode(CONSUMER_KEY+":"+CONSUMER_SECRET)
 
@@ -43,11 +43,7 @@ payload = response.read()
 
 ##Converting the payload string to a dictionary
 dic = ast.literal_eval(payload)
-#print dic
-
-
 access_token = dic.get("access_token")
-
 get_headers={"Authorization":"Bearer "+access_token}
         
 ##Getting WorldWide Trends 
@@ -62,13 +58,11 @@ names = data[0]['trends']
 #Getting Tweets for Trends
 
 for x in names:
-    print "**********%s trending**********"%x['name']
-    print "query-%s"%(x['query'])
-    conn.request("GET","/1.1/search/tweets.json?q="+(x['query'])+"&count=1","",get_headers)    
+    print "\033[95m**********%s trending**********\033[0m"%x['name']
+    conn.request("GET","/1.1/search/tweets.json?q="+(x['query'])+"&count=10","",get_headers)    
     tweets_resp = conn.getresponse()
     tweets = tweets_resp.read()
     tweets_json = json.loads(str(tweets))    
-    #tweet=tweets_json['statuses']        
     
     #Check if location=='None'
     for tweet in tweets_json['statuses']:
@@ -78,11 +72,31 @@ for x in names:
         if(location=='None'):
             location=str(tweet['place']).encode('utf-8')
 
-        print "**********%s tweets**********"%(tweet['user']['screen_name'])
-        print "%s"%(tweet['text'])
+        print "**********%s Tweets**********"%(tweet['user']['screen_name'])
+        print "\033[92m%s\033[0m"%(tweet['text'])
 
         if(location != 'None'):
             insert_into_database(x['name'],tweet['user']['screen_name'],tweet['text'],location)
 
+    client = MongoClient('localhost', 27017)
+    db = client.test_database
+    newlist=sorted(list(db.trends.find({"trend":x['name']})),key=lambda k: k['location'])
+    
+    tz=''
+    trend=''
+    count=0;
+    trending_loc=''
 
+##Find Location with most Tweets
+    for each in newlist:
+        if (tz != each['location']):
+            tz=each['location']
+            cnt=db.trends.find({"trend":x['name'],"location":tz}).count()
+            if(count<cnt):
+                count=cnt
+                trending_loc=tz
+                             
+            #print "\n\033[92mNo of users talking about %s from %s=%d\033[0m\n"%(x['name'],tz,cnt)
+    
+    print "\033[93m*******Most Tweets about %s from %s*******\n\033[0m"%(x['name'],trending_loc)
 
