@@ -8,8 +8,8 @@ from sys import argv
 
 script,ScreenName = argv
 
-CONSUMER_KEY='uGv1JwnszyrXEbvamVTXVdmff'
-CONSUMER_SECRET='0Ayg2bZsLrSAWBcgXuDlAVz84PHYHYJWjN5V1v9V3s9F5zQCEH'
+CONSUMER_KEY='Your_Consumer_key'
+CONSUMER_SECRET='Your_Consumer_secret'
 
 enc_str= base64.b64encode(CONSUMER_KEY+":"+CONSUMER_SECRET)
 
